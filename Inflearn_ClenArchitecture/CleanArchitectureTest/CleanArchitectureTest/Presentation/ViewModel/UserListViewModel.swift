@@ -144,7 +144,7 @@ public final class UserListViewModel: UserListViewModelProtocol {
             let result = await usecase.fetchUser(query: urlAllowQuery, page: page)
             switch result {
             case let .success(users):
-                if page == 0 {
+                if page == 1 {
                     //첫번째 페이지
                     fetchUserList.accept(users.items)
                 } else {
@@ -219,4 +219,20 @@ public enum TabButtonType: String {
 public enum UserListCellData {
     case user(user: UserListItem, isFavorite: Bool)
     case header(String)
+    
+    var id: String {
+        switch self {
+        case .header:
+            HeaderTableViewCell.id
+        case .user:
+            UserTableViewCell.id
+        }
+    }
+}
+
+
+protocol UserListCellProtocol {
+    func apply(cellData: UserListCellData)
+    
+    
 }
