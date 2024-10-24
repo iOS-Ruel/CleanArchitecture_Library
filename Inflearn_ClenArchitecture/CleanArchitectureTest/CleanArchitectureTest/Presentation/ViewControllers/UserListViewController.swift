@@ -100,10 +100,24 @@ class UserListViewController: UIViewController {
                                                                         fetchMore: fetchMore.asObservable()))
         
         output.cellData
-            .bind(to: tableView.rx.items) { tableView, index, item in
+            .bind(to: tableView.rx.items) {[weak self] tableView, index, cellData in
                 guard let cell = tableView.dequeueReusableCell(withIdentifier: UserTableViewCell.id) else { return UITableViewCell()}
-                (cell as? UserTableViewCell)?.apply(cellData: item)
                 
+                (cell as? UserTableViewCell)?.apply(cellData: cellData)
+                
+                if let cell = cell as? UserTableViewCell, case let .user(user, isFavorite) = cellData {
+                    
+                    cell.favoriteButton.rx.tap
+                        .bind {
+                            if isFavorite {
+                                self?.deleteFavorite.accept(user.id)
+                            } else {
+                                self?.saveFavorite.accept(user)
+                            }
+                            
+                        }
+                        .disposed(by: cell.disposeBag)
+                }
                 return cell
             }
             .disposed(by: disposeBag)

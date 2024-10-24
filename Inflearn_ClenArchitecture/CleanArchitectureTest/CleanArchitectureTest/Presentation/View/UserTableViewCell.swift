@@ -7,9 +7,11 @@
 
 import UIKit
 import Kingfisher
+import RxSwift
 
 final class UserTableViewCell: UITableViewCell {
     static let id = "UserTableViewCell"
+    public var disposeBag = DisposeBag() 
     
     private let userImageView: UIImageView = {
         let iv = UIImageView()
@@ -27,12 +29,23 @@ final class UserTableViewCell: UITableViewCell {
         return label
     }()
     
+    public let favoriteButton: UIButton = {
+        let button = UIButton()
+        button.setImage(.init(systemName: "heart"), for: .normal)
+        button.setImage(.init(systemName: "heart.fill"), for: .selected)
+        button.tintColor = .systemRed
+        return button
+    }()
+    
     
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        self.addSubview(userImageView)
-        self.addSubview(nameLabel)
+        self.contentView.addSubview(userImageView)
+        self.contentView.addSubview(nameLabel)
+        self.contentView.addSubview(favoriteButton)
+        
+        
         userImageView.snp.makeConstraints { make in
             make.leading.top.bottom.equalToSuperview().inset(20)
             make.width.height.equalTo(80)
@@ -42,18 +55,31 @@ final class UserTableViewCell: UITableViewCell {
             make.leading.equalTo(userImageView.snp.trailing).offset(8)
             make.trailing.equalToSuperview().inset(20)
         }
+        favoriteButton.snp.makeConstraints { make in
+            make.width.height.equalTo(40)
+            make.centerY.equalToSuperview()
+            make.trailing.equalTo(-20)
+        }
+        
+        
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        disposeBag = DisposeBag()
+    }
+    
     
     func apply(cellData: UserListCellData) {
-        guard case let .user(user, userFavorite) = cellData else { return }
+        guard case let .user(user, isFavorite) = cellData else { return }
         nameLabel.text = user.login
         
         userImageView.kf.setImage(with: URL(string: user.imageURL))
+        favoriteButton.isSelected = isFavorite
     }
     
     
