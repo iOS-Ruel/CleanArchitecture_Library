@@ -141,7 +141,7 @@ public final class UserListViewModel: UserListViewModelProtocol {
             return
         }
         Task {
-            let result = await usecase.fetchUser(query: query, page: page)
+            let result = await usecase.fetchUser(query: urlAllowQuery, page: page)
             switch result {
             case let .success(users):
                 if page == 0 {

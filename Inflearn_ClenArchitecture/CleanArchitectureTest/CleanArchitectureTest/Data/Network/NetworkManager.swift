@@ -16,7 +16,7 @@ protocol NetworkManagerProtocol {
                                  parameter: Parameters?) async -> Result<T, NetworkError>
 }
 
-public class NetworkManager {
+public class NetworkManager: NetworkManagerProtocol  {
     private let session: SessionProtocol
     init(session: SessionProtocol) {
         self.session = session
