@@ -21,10 +21,10 @@ public protocol SessionProtocol {
 }
 
 //Session
-class UserSession {
+class UserSession: SessionProtocol{
     private var session: Session
     
-    init(session: Session) {
+    init() {
         let config = URLSessionConfiguration.default
         //캐시가 있으면 캐시 리턴 아니면 api 호출
         config.requestCachePolicy = .returnCacheDataElseLoad
