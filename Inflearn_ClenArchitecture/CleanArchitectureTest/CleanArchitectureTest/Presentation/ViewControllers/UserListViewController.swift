@@ -11,9 +11,14 @@ import RxSwift
 import RxCocoa
 
 class UserListViewController: UIViewController {
-    private let disposeBag = DisposeBag()
+    
     
     private let viewModel: UserListViewModelProtocol
+    private let disposeBag = DisposeBag()
+    private let saveFavorite = PublishRelay<UserListItem>()
+    private let deleteFavorite = PublishRelay<Int>()
+    private let fetchMore = PublishRelay<Void>()
+    
     private let searchTextField: UITextField = {
         let textfield = UITextField()
         textfield.layer.borderWidth = 1
@@ -30,6 +35,11 @@ class UserListViewController: UIViewController {
     
     private let tabButtonView = TabButtonView(tabList: [.api, .favorite])
     
+    private let tableView: UITableView = {
+        let tableView = UITableView()
+        return tableView
+    }()
+    
     init(viewModel: UserListViewModelProtocol) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
@@ -37,6 +47,7 @@ class UserListViewController: UIViewController {
         view.backgroundColor = .white
         setupUI()
         bindView()
+        bindViewModel()
     }
     
     required init?(coder: NSCoder) {
@@ -52,6 +63,8 @@ class UserListViewController: UIViewController {
     private func setupUI() {
         view.addSubview(searchTextField)
         view.addSubview(tabButtonView)
+        view.addSubview(tableView)
+        
         searchTextField.snp.makeConstraints { make in
             make.top.equalTo(view.safeAreaLayoutGuide)
             make.leading.trailing.equalToSuperview().inset(16)
@@ -62,18 +75,44 @@ class UserListViewController: UIViewController {
             make.leading.trailing.equalToSuperview()
             make.height.equalTo(50)
         }
+        tableView.snp.makeConstraints { make in
+            make.top.equalTo(tabButtonView.snp.bottom)
+            make.leading.trailing.bottom.equalToSuperview()
+        }
     }
     
     private func bindView() {
-        tabButtonView.selectedType
-            .bind { type in
-                print("button tap type:" , type)
-            
+        
+    }
+    
+    private func bindViewModel() {
+        let tabButtonTtpe = tabButtonView.selectedType.compactMap { $0 }
+        let query = searchTextField.rx.text.orEmpty.debounce(.milliseconds(300), scheduler: MainScheduler.instance)
+        
+        
+        
+        
+        let output = viewModel.transform(input: UserListViewModel.Input(tabButtonType: tabButtonTtpe,
+                                                                        query: query,
+                                                                        saveFavorite: saveFavorite.asObservable(),
+                                                                        deleteFavorite: deleteFavorite.asObservable(),
+                                                                        fetchMore: fetchMore.asObservable()))
+        
+        output.cellData
+            .bind(to: tableView.rx.items) { tableView, index, item in
+                return UITableViewCell()
+            }
+            .disposed(by: disposeBag)
+        
+        output.error.bind {[weak self] errorMessage in
+            let alert = UIAlertController(title: "에러", message: errorMessage, preferredStyle: .alert)
+            alert.addAction(.init(title: "확인", style: .default))
+            self?.present(alert, animated: true)
         }
         .disposed(by: disposeBag)
     }
-
-
+    
+    
 }
 
 final class TabButtonView: UIStackView {
@@ -115,7 +154,7 @@ final class TabButtonView: UIStackView {
     }
 }
 final class TabButton: UIButton {
- 
+    
     private let type: TabButtonType
     override var isSelected: Bool {
         didSet {
