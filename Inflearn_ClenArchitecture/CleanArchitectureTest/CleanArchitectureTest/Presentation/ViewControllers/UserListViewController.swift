@@ -84,7 +84,33 @@ class UserListViewController: UIViewController {
     }
     
     private func bindView() {
+        tableView.rx.prefetchRows
+            .bind { [weak self] indexpath in
+                //총 리스트의 개수를 받아오고
+                //현재 인덱스와 비교하여 총리스트 개수 -1이나 -2일때 실행시킴
+                guard let rows = self?.tableView.numberOfRows(inSection: 0),
+                        let itemIndex = indexpath.last?.item else { return }
+                
+                print("rows", rows,"itemIndex = ", itemIndex)
+                if itemIndex >= rows - 1 {
+                    self?.fetchMore.accept(())
+                }
+                
+            }
+            .disposed(by: disposeBag)
         
+//        tableView.rx.willDisplayCell
+//            .subscribe(onNext: { [weak self] cell, indexPath in
+//                
+//                guard let self = self else { return }
+//                let rows = self.tableView.numberOfRows(inSection: 0)
+//                print("indexPath = ", indexPath, indexPath.row, "rows = ", rows)
+//                if indexPath.row == rows - 1 {
+//                    self.fetchMore.accept(())
+//                    print("accept")
+//                }
+//            })
+//            .disposed(by: disposeBag)
     }
     
     private func bindViewModel() {

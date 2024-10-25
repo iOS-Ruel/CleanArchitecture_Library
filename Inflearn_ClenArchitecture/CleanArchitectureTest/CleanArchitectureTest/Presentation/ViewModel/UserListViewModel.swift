@@ -91,6 +91,7 @@ public final class UserListViewModel: UserListViewModelProtocol {
                 guard let self = self else { return }
                 page += 1
                 fetchUser(query: query, page: page)
+                print("page = ", page )
         }
         .disposed(by: disposeBag)
         
@@ -147,9 +148,11 @@ public final class UserListViewModel: UserListViewModelProtocol {
                 if page == 1 {
                     //첫번째 페이지
                     fetchUserList.accept(users.items)
+                    print(fetchUserList)
                 } else {
                     //두번째 그이상 페이지
                     fetchUserList.accept(fetchUserList.value + users.items)
+                    print(fetchUserList)
                 }
                 
             case let .failure(error):

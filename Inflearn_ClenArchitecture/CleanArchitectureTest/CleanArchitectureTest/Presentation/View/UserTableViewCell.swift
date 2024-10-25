@@ -77,7 +77,7 @@ final class UserTableViewCell: UITableViewCell, UserListCellProtocol {
     
     func apply(cellData: UserListCellData) {
         guard case let .user(user, isFavorite) = cellData else { return }
-        nameLabel.text = user.login
+        nameLabel.text = "\(user.login)"
         
         userImageView.kf.setImage(with: URL(string: user.imageURL))
         favoriteButton.isSelected = isFavorite
